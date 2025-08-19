@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  role     String @default("user")
+  workspaces Workspace[] @relation("WorkspaceCreator")
+  bookings  Booking[] @relation("UserBookings")
+}
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  location  String
+  capacity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+  creator   User     @relation("WorkspaceCreator", fields: [createdBy], references: [id])
+  bookings  Booking[] @relation("WorkspaceBookings")
+}
+
+model Booking {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      String
+  date        DateTime
+  time        String
+  name        String
+  phone       String
+  email       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  workspace   Workspace @relation("WorkspaceBookings", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User     @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, date, time])
+}
