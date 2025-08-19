@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
 import { PrismaClient } from '@/generated/prisma'
 
+export const runtime = 'nodejs'
+
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 const prisma = globalForPrisma.prisma || new PrismaClient()
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
@@ -31,7 +33,19 @@ export async function GET() {
             }
         })
 
-        return NextResponse.json({ workspaces })
+        // Serialize the workspaces to remove non-serializable properties
+        const serializedWorkspaces = workspaces.map(workspace => ({
+            id: workspace.id,
+            name: workspace.name,
+            location: workspace.location,
+            capacity: workspace.capacity,
+            createdAt: workspace.createdAt.toISOString(),
+            updatedAt: workspace.updatedAt.toISOString(),
+            createdBy: workspace.createdBy,
+            creator: workspace.creator
+        }))
+
+        return NextResponse.json({ workspaces: serializedWorkspaces })
     } catch (error) {
         console.error('Error in GET /api/workspaces:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -91,7 +105,19 @@ export async function POST(request: Request) {
 
         console.log('Workspace created successfully:', workspace)
 
-        return NextResponse.json({ workspace }, { status: 201 })
+        // Serialize the workspace to remove non-serializable properties
+        const serializedWorkspace = {
+            id: workspace.id,
+            name: workspace.name,
+            location: workspace.location,
+            capacity: workspace.capacity,
+            createdAt: workspace.createdAt.toISOString(),
+            updatedAt: workspace.updatedAt.toISOString(),
+            createdBy: workspace.createdBy,
+            creator: workspace.creator
+        }
+
+        return NextResponse.json({ workspace: serializedWorkspace }, { status: 201 })
     } catch (error) {
         console.error('Error in POST /api/workspaces:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

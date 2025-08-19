@@ -41,6 +41,7 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
+        jwt.verify(token.value, process.env.JWT_SECRET!)
         return NextResponse.next()
     } catch (error) {
         if (error instanceof jwt.JsonWebTokenError) {

@@ -122,12 +122,12 @@ export async function POST(request: Request) {
                 id: booking.id,
                 workspaceName: booking.workspace.name,
                 workspaceLocation: booking.workspace.location,
-                date: booking.date,
+                date: booking.date.toISOString(),
                 time: booking.time,
                 name: booking.name,
                 phone: booking.phone,
                 email: booking.email,
-                createdAt: booking.createdAt
+                createdAt: booking.createdAt.toISOString()
             }
         }, { status: 201 })
 
@@ -173,7 +173,22 @@ export async function GET() {
             }
         })
 
-        return NextResponse.json({ bookings })
+        // Serialize the bookings to remove non-serializable properties
+        const serializedBookings = bookings.map(booking => ({
+            id: booking.id,
+            workspaceId: booking.workspaceId,
+            userId: booking.userId,
+            date: booking.date.toISOString(),
+            time: booking.time,
+            name: booking.name,
+            phone: booking.phone,
+            email: booking.email,
+            createdAt: booking.createdAt.toISOString(),
+            updatedAt: booking.updatedAt.toISOString(),
+            workspace: booking.workspace
+        }))
+
+        return NextResponse.json({ bookings: serializedBookings })
     } catch (error) {
         console.error('Error in GET /api/bookings:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
